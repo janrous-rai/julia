@@ -14,8 +14,8 @@ steps:
       - JuliaCI/julia#v1:
           version: 1.6
       - staticfloat/sandbox#v1:
-          rootfs_url: https://github.com/JuliaCI/rootfs-images/releases/download/v1/llvm-passes.tar.gz
-          rootfs_treehash: "f3ed53f159e8f13edfba8b20ebdb8ece73c1b8a8"
+          rootfs_url: https://github.com/JuliaCI/rootfs-images/releases/download/v1/package_linux64.tar.gz
+          rootfs_treehash: "6b521782a12c789148465f5270788d9883a06894"
           uid: 1000
           gid: 1000
           workspaces:
@@ -49,7 +49,7 @@ steps:
       - JuliaCI/julia#v1:
           version: 1.6
       - staticfloat/sandbox#v1:
-          rootfs_url: https://github.com/JuliaCI/rootfs-images/releases/download/v1/llvm-passes.tar.gz
+          rootfs_url: https://github.com/JuliaCI/rootfs-images/releases/download/v1/package_linux64.tar.gz
           rootfs_treehash: "f3ed53f159e8f13edfba8b20ebdb8ece73c1b8a8"
           uid: 1000
           gid: 1000
