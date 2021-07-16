@@ -60,10 +60,10 @@ steps:
       JULIA_SHELL: "/bin/bash"
     commands: |
       echo "--- Debugging: echo USER"
-      echo $USER
+      echo $$USER
 
       echo "--- Debugging: echo HOME"
-      echo $HOME
+      echo $$HOME
 
       echo "--- Debugging: id"
       id
@@ -75,16 +75,16 @@ steps:
       which -a bash
 
       echo "--- Debugging: SHELL"
-      echo $SHELL
+      echo $$SHELL
 
       echo "--- Debugging: JULIA_SHELL"
-      echo $JULIA_SHELL
+      echo $$JULIA_SHELL
 
       echo "--- Debugging: echo HOME"
-      echo $HOME
+      echo $$HOME
 
       echo "--- Debugging: ls -ld HOME"
-      ls -ld $HOME
+      ls -ld $$HOME
 
       echo "--- Download build artifacts"
       rm -rf julia-linux64.tar.gz
