@@ -71,12 +71,18 @@ steps:
 
       echo "--- Debugging: which -a bash"
       which -a bash
-
-      echo "--- Check that the home directory exists"
+      
+      echo "--- Debugging: SHELL"
+      echo $SHELL
+      
+      echo "--- Debugging: JULIA_SHELL"
+      echo $JULIA_SHELL
+      
+      echo "--- Debugging: echo HOME"
       echo $HOME
+      
+      echo "--- Debugging: ls -ld HOME"
       ls -ld $HOME
-      echo $${HOME}
-      ls -ld $${HOME}
 
       echo "--- Download build artifacts"
       rm -rf julia-linux64.tar.gz
