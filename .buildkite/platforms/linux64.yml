@@ -24,10 +24,10 @@ steps:
     commands: |
       echo "--- Debugging: echo USER"
       echo $USER
-      
+
       echo "--- Debugging: echo HOME"
       echo $HOME
-      
+
       echo "--- Debugging: id"
       id
 
