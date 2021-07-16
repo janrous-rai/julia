@@ -22,6 +22,21 @@ steps:
             # Include `/cache/repos` so that our `git` version introspection works.
             - "/cache/repos:/cache/repos"
     commands: |
+      echo "--- Debugging: echo USER"
+      echo $USER
+      
+      echo "--- Debugging: echo HOME"
+      echo $HOME
+      
+      echo "--- Debugging: id"
+      id
+
+      echo "--- Debugging: which bash"
+      which bash
+
+      echo "--- Debugging: which -a bash"
+      which -a bash
+
       echo "--- Build Julia from source"
       make -j 6
       make release
