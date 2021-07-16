@@ -57,7 +57,7 @@ steps:
             # Include `/cache/repos` so that our `git` version introspection works.
             - "/cache/repos:/cache/repos"
     env:
-      - JULIA_SHELL: "/bin/bash"
+      JULIA_SHELL: "/bin/bash"
     commands: |
       echo "--- Debugging: echo USER"
       echo $USER
