@@ -71,16 +71,16 @@ steps:
 
       echo "--- Debugging: which -a bash"
       which -a bash
-      
+
       echo "--- Debugging: SHELL"
       echo $SHELL
-      
+
       echo "--- Debugging: JULIA_SHELL"
       echo $JULIA_SHELL
-      
+
       echo "--- Debugging: echo HOME"
       echo $HOME
-      
+
       echo "--- Debugging: ls -ld HOME"
       ls -ld $HOME
 
