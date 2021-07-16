@@ -133,6 +133,12 @@ namespace jl_intrinsics {
 
     // `julia.queue_gc_root`: an intrinsic that queues a GC root.
     extern const IntrinsicDescription queueGCRoot;
+
+    // `julia.gcroot_flush`: an intrinsic that flushes GC roots.
+    extern const IntrinsicDescription GCRootFlush;
+
+    // `julia.pgcstack`: an intrinsic that gets the current pgcstack.
+    extern const IntrinsicDescription getPGCStack;
 }
 
 // A namespace for well-known Julia runtime function descriptions.

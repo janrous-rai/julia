@@ -789,6 +789,7 @@ void addOptimizationPasses(legacy::PassManagerBase *PM, int opt_level,
         // LLVM's devirtualization heuristics, which would result in the entire
         // pass pipeline being re-exectuted. Prevent this by inserting a barrier.
         PM->add(createBarrierNoopPass());
+        PM->add(createGCSafepointPass());
         PM->add(createLowerExcHandlersPass());
         PM->add(createGCInvariantVerifierPass(false));
         // Needed **before** LateLowerGCFrame on LLVM < 12

@@ -118,6 +118,8 @@ namespace jl_intrinsics {
     static const char *PUSH_GC_FRAME_NAME = "julia.push_gc_frame";
     static const char *POP_GC_FRAME_NAME = "julia.pop_gc_frame";
     static const char *QUEUE_GC_ROOT_NAME = "julia.queue_gc_root";
+    static const char *GC_ROOT_FLUSH_NAME = "julia.gcroot_flush";
+    static const char *GET_PGCSTACK_NAME = "julia.get_pgcstack";
 
     // Annotates a function with attributes suitable for GC allocation
     // functions. Specifically, the return value is marked noalias and nonnull.
@@ -204,6 +206,30 @@ namespace jl_intrinsics {
                 Function::ExternalLinkage,
                 QUEUE_GC_ROOT_NAME);
             intrinsic->addFnAttr(Attribute::InaccessibleMemOrArgMemOnly);
+            return intrinsic;
+        });
+
+    const IntrinsicDescription GCRootFlush(
+        GC_ROOT_FLUSH_NAME,
+        [](const JuliaPassContext &context) {
+            auto intrinsic = Function::Create(
+                FunctionType::get(
+                    Type::getVoidTy(context.getLLVMContext()),
+                    false),
+                Function::ExternalLinkage,
+                GC_ROOT_FLUSH_NAME);
+            return intrinsic;
+        });
+
+    const IntrinsicDescription getPGCStack(
+        GET_PGCSTACK_NAME,
+        [](const JuliaPassContext &context) {
+            auto intrinsic = Function::Create(
+                FunctionType::get(
+                    PointerType::get(context.T_ppjlvalue, 0),
+                    false),
+                Function::ExternalLinkage,
+                GET_PGCSTACK_NAME);
             return intrinsic;
         });
 }

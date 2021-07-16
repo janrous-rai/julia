@@ -240,6 +240,7 @@ Pass *createJuliaLICMPass();
 Pass *createMultiVersioningPass();
 Pass *createAllocOptPass();
 Pass *createDemoteFloat16Pass();
+Pass *createGCSafepointPass();
 // Whether the Function is an llvm or julia intrinsic.
 static inline bool isIntrinsicFunction(Function *F)
 {
