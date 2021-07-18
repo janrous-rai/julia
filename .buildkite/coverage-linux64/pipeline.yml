@@ -38,6 +38,7 @@ steps:
       ./julia --code-coverage=all --sysimage-native-code=no .buildkite/coverage-linux64/run_tests_serial.jl test/compiler/inline.jl
       ./julia --code-coverage=all --sysimage-native-code=no .buildkite/coverage-linux64/run_tests_serial.jl test/compiler/interpreter_exec.jl
       ./julia --code-coverage=all --sysimage-native-code=no .buildkite/coverage-linux64/run_tests_serial.jl test/compiler/irpasses.jl
+      ./julia --code-coverage=all --sysimage-native-code=no .buildkite/coverage-linux64/run_tests_serial.jl test/compiler/plugin.jl
       ./julia --code-coverage=all --sysimage-native-code=no .buildkite/coverage-linux64/run_tests_serial.jl test/compiler/ssair.jl
       ./julia --code-coverage=all --sysimage-native-code=no .buildkite/coverage-linux64/run_tests_serial.jl test/compiler/validation.jl
 

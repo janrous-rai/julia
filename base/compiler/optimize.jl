@@ -53,7 +53,10 @@ mutable struct OptimizationState
     slottypes::Vector{Any}
     const_api::Bool
     inlining::InliningState
-    function OptimizationState(frame::InferenceState, params::OptimizationParams, interp::AbstractInterpreter)
+    context::PluginContext
+
+    function OptimizationState(frame::InferenceState, params::OptimizationParams, interp::AbstractInterpreter;
+                               @nospecialize(context::PluginContext = NULL_CONTEXT))
         s_edges = frame.stmt_edges[1]::Vector{Any}
         inlining = InliningState(params,
             EdgeTracker(s_edges, frame.valid_worlds),
@@ -62,9 +65,11 @@ mutable struct OptimizationState
         return new(frame.linfo,
                    frame.src, nothing, frame.stmt_info, frame.mod, frame.nargs,
                    frame.sptypes, frame.slottypes, false,
-                   inlining)
+                   inlining, context)
     end
-    function OptimizationState(linfo::MethodInstance, src::CodeInfo, params::OptimizationParams, interp::AbstractInterpreter)
+
+    function OptimizationState(linfo::MethodInstance, src::CodeInfo, params::OptimizationParams, interp::AbstractInterpreter;
+                               @nospecialize(context::PluginContext = NULL_CONTEXT))
         # prepare src for running optimization passes
         # if it isn't already
         nssavalues = src.ssavaluetypes
@@ -89,14 +94,15 @@ mutable struct OptimizationState
         return new(linfo,
                    src, nothing, stmt_info, mod, nargs,
                    sptypes_from_meth_instance(linfo), slottypes, false,
-                   inlining)
+                   inlining, context)
         end
 end
 
-function OptimizationState(linfo::MethodInstance, params::OptimizationParams, interp::AbstractInterpreter)
-    src = retrieve_code_info(linfo)
+function OptimizationState(linfo::MethodInstance, params::OptimizationParams, interp::AbstractInterpreter;
+                           @nospecialize(context::PluginContext = NULL_CONTEXT))
+    src = (is_shadow(linfo) ? retrieve_code_info_overdubbed : retrieve_code_info)(linfo)
     src === nothing && return nothing
-    return OptimizationState(linfo, src, params, interp)
+    return OptimizationState(linfo, src, params, interp; context)
 end
 
 function ir_to_codeinf!(opt::OptimizationState)
@@ -190,9 +196,9 @@ function stmt_affects_purity(@nospecialize(stmt), ir)
 end
 
 # compute inlining cost and sideeffects
-function finish(interp::AbstractInterpreter, opt::OptimizationState, params::OptimizationParams, ir::IRCode, @nospecialize(result))
-    (; src, nargs, linfo) = opt
-    (; def, specTypes) = linfo
+function finish!(interp::AbstractInterpreter, opt::OptimizationState, params::OptimizationParams, @nospecialize(result))
+    (; src, nargs, linfo, ir) = opt
+    (; def, specTypes) = maybe_get_overdubbed(linfo) # use meta information of the original method for inlining judgement
     nargs = Int(nargs) - 1
 
     force_noinline = _any(@nospecialize(x) -> isexpr(x, :meta) && x.args[1] === :noinline, ir.meta)
@@ -241,8 +247,6 @@ function finish(interp::AbstractInterpreter, opt::OptimizationState, params::Opt
         end
     end
 
-    opt.ir = ir
-
     # determine and cache inlineability
     union_penalties = false
     if !force_noinline
@@ -280,23 +284,29 @@ function finish(interp::AbstractInterpreter, opt::OptimizationState, params::Opt
         end
     end
 
+    postopt_hook!(opt)
+    @assert isa(opt.ir, IRCode)
+
     nothing
 end
 
 # run the optimization work
 function optimize(interp::AbstractInterpreter, opt::OptimizationState, params::OptimizationParams, @nospecialize(result))
     nargs = Int(opt.nargs) - 1
-    @timeit "optimizer" ir = run_passes(opt.src, nargs, opt)
-    finish(interp, opt, params, ir, result)
+    @timeit "optimizer" run_passes!(opt.src, nargs, opt)
+    finish!(interp, opt, params, result)
 end
 
-function run_passes(ci::CodeInfo, nargs::Int, sv::OptimizationState)
+function run_passes!(ci::CodeInfo, nargs::Int, sv::OptimizationState)
     preserve_coverage = coverage_enabled(sv.mod)
     ir = convert_to_ircode(ci, copy_exprargs(ci.code), preserve_coverage, nargs, sv)
     ir = slot2reg(ir, ci, nargs, sv)
     #@Base.show ("after_construct", ir)
     # TODO: Domsorting can produce an updated domtree - no need to recompute here
     @timeit "compact 1" ir = compact!(ir)
+    sv.ir = ir
+    preopt_hook!(sv)
+    ir = sv.ir::IRCode
     @timeit "Inlining" ir = ssa_inlining_pass!(ir, ir.linetable, sv.inlining, ci.propagate_inbounds)
     #@timeit "verify 2" verify_ir(ir)
     ir = compact!(ir)
@@ -312,7 +322,7 @@ function run_passes(ci::CodeInfo, nargs::Int, sv::OptimizationState)
     if JLOptions().debug_level == 2
         @timeit "verify 3" (verify_ir(ir); verify_linetable(ir.linetable))
     end
-    return ir
+    return sv.ir = ir
 end
 
 function convert_to_ircode(ci::CodeInfo, code::Vector{Any}, coverage::Bool, nargs::Int, sv::OptimizationState)
