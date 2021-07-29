@@ -561,7 +561,8 @@ static void JL_NORETURN throw_internal(jl_task_t *ct, jl_value_t *exception JL_M
     ptls->io_wait = 0;
     // @time needs its compile timer disabled on error,
     // and cannot use a try-finally as it would break scope for assignments
-    jl_measure_compile_time[ptls->tid] = 0;
+    // jl_measure_compile_time[ptls->tid] = 0;
+    // TODO(janrous): what exactly happens if we do not disable compilation timer here?
     JL_GC_PUSH1(&exception);
     jl_gc_unsafe_enter(ptls);
     if (exception) {

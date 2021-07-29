@@ -1,5 +1,6 @@
 // This file is a part of Julia. License is MIT: https://julialang.org/license
 
+
 // Except for parts of this file which were copied from LLVM, under the UIUC license (marked below).
 
 #include "llvm-version.h"
@@ -79,14 +80,12 @@ extern "C" JL_DLLEXPORT
 uint64_t jl_cumulative_compile_time_ns_before()
 {
     int tid = jl_threadid();
-    jl_measure_compile_time[tid] = 1;
     return jl_cumulative_compile_time[tid];
 }
 extern "C" JL_DLLEXPORT
 uint64_t jl_cumulative_compile_time_ns_after()
 {
     int tid = jl_threadid();
-    jl_measure_compile_time[tid] = 0;
     return jl_cumulative_compile_time[tid];
 }
 
@@ -234,8 +233,7 @@ int jl_compile_extern_c(void *llvmmod, void *p, void *sysimg, jl_value_t *declrt
     JL_LOCK(&codegen_lock);
     uint64_t compiler_start_time = 0;
     int tid = jl_threadid();
-    if (jl_measure_compile_time[tid])
-        compiler_start_time = jl_hrtime();
+    compiler_start_time = jl_hrtime();
     jl_codegen_params_t params;
     jl_codegen_params_t *pparams = (jl_codegen_params_t*)p;
     if (pparams == NULL)
@@ -258,7 +256,7 @@ int jl_compile_extern_c(void *llvmmod, void *p, void *sysimg, jl_value_t *declrt
         if (success && llvmmod == NULL)
             jl_add_to_ee(std::unique_ptr<Module>(into));
     }
-    if (codegen_lock.count == 1 && jl_measure_compile_time[tid])
+    if (codegen_lock.count == 1)
         jl_cumulative_compile_time[tid] += (jl_hrtime() - compiler_start_time);
     JL_UNLOCK(&codegen_lock);
     return success;
@@ -316,8 +314,7 @@ jl_code_instance_t *jl_generate_fptr(jl_method_instance_t *mi JL_PROPAGATES_ROOT
     JL_LOCK(&codegen_lock); // also disables finalizers, to prevent any unexpected recursion
     uint64_t compiler_start_time = 0;
     int tid = jl_threadid();
-    if (jl_measure_compile_time[tid])
-        compiler_start_time = jl_hrtime();
+    compiler_start_time = jl_hrtime();
     // if we don't have any decls already, try to generate it now
     jl_code_info_t *src = NULL;
     JL_GC_PUSH1(&src);
@@ -354,7 +351,7 @@ jl_code_instance_t *jl_generate_fptr(jl_method_instance_t *mi JL_PROPAGATES_ROOT
     else {
         codeinst = NULL;
     }
-    if (codegen_lock.count == 1 && jl_measure_compile_time[tid])
+    if (codegen_lock.count == 1)
         jl_cumulative_compile_time[tid] += (jl_hrtime() - compiler_start_time);
     JL_UNLOCK(&codegen_lock);
     JL_GC_POP();
@@ -370,8 +367,7 @@ void jl_generate_fptr_for_unspecialized(jl_code_instance_t *unspec)
     JL_LOCK(&codegen_lock);
     uint64_t compiler_start_time = 0;
     int tid = jl_threadid();
-    if (jl_measure_compile_time[tid])
-        compiler_start_time = jl_hrtime();
+    compiler_start_time = jl_hrtime();
     if (unspec->invoke == NULL) {
         jl_code_info_t *src = NULL;
         JL_GC_PUSH1(&src);
@@ -398,7 +394,7 @@ void jl_generate_fptr_for_unspecialized(jl_code_instance_t *unspec)
         }
         JL_GC_POP();
     }
-    if (codegen_lock.count == 1 && jl_measure_compile_time[tid])
+    if (codegen_lock.count == 1)
         jl_cumulative_compile_time[tid] += (jl_hrtime() - compiler_start_time);
     JL_UNLOCK(&codegen_lock); // Might GC
 }
@@ -423,8 +419,7 @@ jl_value_t *jl_dump_method_asm(jl_method_instance_t *mi, size_t world,
             JL_LOCK(&codegen_lock); // also disables finalizers, to prevent any unexpected recursion
             uint64_t compiler_start_time = 0;
             int tid = jl_threadid();
-            if (jl_measure_compile_time[tid])
-                compiler_start_time = jl_hrtime();
+            compiler_start_time = jl_hrtime();
             specfptr = (uintptr_t)codeinst->specptr.fptr;
             if (specfptr == 0) {
                 jl_code_info_t *src = jl_type_infer(mi, world, 0);
@@ -448,8 +443,7 @@ jl_value_t *jl_dump_method_asm(jl_method_instance_t *mi, size_t world,
                 }
                 JL_GC_POP();
             }
-            if (jl_measure_compile_time[tid])
-                jl_cumulative_compile_time[tid] += (jl_hrtime() - compiler_start_time);
+            jl_cumulative_compile_time[tid] += (jl_hrtime() - compiler_start_time);
             JL_UNLOCK(&codegen_lock);
         }
         if (specfptr != 0)

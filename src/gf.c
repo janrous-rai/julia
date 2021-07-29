@@ -3164,14 +3164,13 @@ static uint64_t inference_start_time = 0;
 JL_DLLEXPORT void jl_typeinf_begin(void)
 {
     JL_LOCK(&typeinf_lock);
-    if (jl_measure_compile_time[jl_threadid()])
-        inference_start_time = jl_hrtime();
+    inference_start_time = jl_hrtime();
 }
 
 JL_DLLEXPORT void jl_typeinf_end(void)
 {
     int tid = jl_threadid();
-    if (typeinf_lock.count == 1 && jl_measure_compile_time[tid])
+    if (typeinf_lock.count == 1)
         jl_cumulative_compile_time[tid] += (jl_hrtime() - inference_start_time);
     JL_UNLOCK(&typeinf_lock);
 }

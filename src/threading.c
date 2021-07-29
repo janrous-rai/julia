@@ -287,8 +287,28 @@ void jl_pgcstack_getkey(jl_get_pgcstack_func **f, jl_pgcstack_key_t *k)
 #endif
 
 jl_ptls_t *jl_all_tls_states JL_GLOBALLY_ROOTED;
-uint8_t *jl_measure_compile_time = NULL;
 uint64_t *jl_cumulative_compile_time = NULL;
+
+JL_DLLEXPORT uint64_t jl_cumulative_compile_time_ns_for(int16_t tid) 
+{
+    if (jl_cumulative_compile_time == NULL || tid < 0 || tid >= jl_n_threads)
+        return 0;
+
+    return jl_cumulative_compile_time[tid];
+}
+
+JL_DLLEXPORT uint64_t jl_cumulative_compile_time_ns(void)
+{
+    if (jl_cumulative_compile_time == NULL)
+        return 0;
+
+    uint64_t tot = 0;
+    for (uint16_t t = 0; t < jl_n_threads; t++) {
+        tot += jl_cumulative_compile_time[t];
+    }
+    return tot;
+}
+
 
 // return calling thread's ID
 // Also update the suspended_threads list in signals-mach when changing the
@@ -467,12 +487,12 @@ void jl_init_threading(void)
     }
     if (jl_n_threads <= 0)
         jl_n_threads = 1;
-    jl_measure_compile_time = (uint8_t*)calloc(jl_n_threads, sizeof(*jl_measure_compile_time));
     jl_cumulative_compile_time = (uint64_t*)calloc(jl_n_threads, sizeof(*jl_cumulative_compile_time));
 #ifndef __clang_analyzer__
     jl_all_tls_states = (jl_ptls_t*)calloc(jl_n_threads, sizeof(void*));
 #endif
 }
+
 
 static uv_barrier_t thread_init_done;
 
