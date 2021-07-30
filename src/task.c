@@ -589,12 +589,10 @@ static void JL_NORETURN throw_internal(jl_value_t *exception JL_MAYBE_UNROOTED)
     ptls->io_wait = 0;
     // @time needs its compile timer disabled on error,
     // and cannot use a try-finally as it would break scope for assignments
-    jl_measure_compile_time[ptls->tid] = 0;
-    if (ptls->safe_restore)
-        jl_longjmp(*ptls->safe_restore, 1);
-    // During startup
-    if (!ptls->current_task)
-        jl_no_exc_handler(exception);
+    // We blindly disable compilation time tracking here, for all running Tasks, even though
+    // it may cause some incorrect measurements. This is a known bug, and is being tracked
+    // here: https://github.com/JuliaLang/julia/pull/39138
+    jl_atomic_store_relaxed(&jl_measure_compile_time_enabled, 0);
     JL_GC_PUSH1(&exception);
     jl_gc_unsafe_enter(ptls);
     if (exception) {
