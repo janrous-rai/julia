@@ -36,6 +36,15 @@ uint64_t io_wakeup_enter;
 uint64_t io_wakeup_leave;
 );
 
+// Returns number of tasks contained in the queues
+JL_DLLEXPORT uint64_t jl_task_queue_length(void)
+{
+    uint64_t total = 0;
+    for (int32_t i = 0; i < heap_p; ++i) {
+        total += jl_atomic_fetch_relaxed(&heaps[i].ntasks);
+    }
+    return total;
+}
 
 JL_DLLEXPORT int jl_set_task_tid(jl_task_t *task, int tid) JL_NOTSAFEPOINT
 {
