@@ -647,9 +647,10 @@ function enq_work(t::Task)
     else
         if ccall(:jl_enqueue_task, Cint, (Any,), t) != 0
             # if multiq is full, give to a random thread (TODO fix)
+            # TODO(janrous): it is unclear to me when does tid != 0 happen!
             if tid == 0
-                tid = mod(time_ns() % Int, Threads.nthreads()) + 1
-                ccall(:jl_set_task_tid, Cvoid, (Any, Cint), t, tid-1)
+                tid = ccall(:jl_get_random_thread_for_spawned_task, Cint, ()) + 1
+                ccall(:jl_set_task_tid, Cvoid, (Any, Cint), t, tid - 1)
             end
             push!(Workqueues[tid], t)
         else
