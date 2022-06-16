@@ -3356,7 +3356,7 @@ void jl_gc_init(void)
     jl_printf((JL_STREAM*)STDERR_FILENO, "constrained mem: %llu\n", (unsigned long long)constrained_mem);
     if (constrained_mem > 0 && constrained_mem < total_mem)
         total_mem = constrained_mem;
-    size_t maxmem = total_mem / jl_cpu_threads() / 2;
+    size_t maxmem = total_mem / jl_n_threads / 2;
     if (maxmem > max_collect_interval)
         max_collect_interval = maxmem;
     jl_printf((JL_STREAM*)STDERR_FILENO, "maxmem %llu, max_collect_interval %llu\n",
