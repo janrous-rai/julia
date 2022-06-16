@@ -719,6 +719,7 @@ JL_DLLEXPORT void julia_init(JL_IMAGE_SEARCH rel)
         jl_error("cannot generate code-coverage or track allocation information while generating a .o, .bc, or .s output file");
     }
 
+    jl_init_nthreads();
     jl_gc_init();
     jl_init_tasks();
     jl_init_threading();
