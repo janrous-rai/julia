@@ -7,8 +7,6 @@
 #include <malloc.h> // for malloc_trim
 #endif
 
-#include <inttypes.h>
-
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -3352,16 +3350,11 @@ void jl_gc_init(void)
     // on a big memory machine, set max_collect_interval to totalmem / ncores / 2
     uint64_t total_mem = uv_get_total_memory();
     uint64_t constrained_mem = uv_get_constrained_memory();
-    jl_printf((JL_STREAM*)STDERR_FILENO, "total memory: %llu\n", (unsigned long long)total_mem);
-    jl_printf((JL_STREAM*)STDERR_FILENO, "constrained mem: %llu\n", (unsigned long long)constrained_mem);
     if (constrained_mem > 0 && constrained_mem < total_mem)
         total_mem = constrained_mem;
     size_t maxmem = total_mem / jl_n_threads / 2;
     if (maxmem > max_collect_interval)
         max_collect_interval = maxmem;
-    jl_printf((JL_STREAM*)STDERR_FILENO, "maxmem %llu, max_collect_interval %llu\n",
-            (unsigned long long)maxmem,
-            (unsigned long long)max_collect_interval);
 #endif
     jl_gc_mark_sp_t sp = {NULL, NULL, NULL, NULL};
     gc_mark_loop(NULL, sp);
