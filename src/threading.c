@@ -442,9 +442,14 @@ static void jl_check_tls(void)
 const int jl_tls_elf_support = 0;
 #endif
 
-void jl_init_nthreads(void)
+// interface to Julia; sets up to make the runtime thread-safe
+void jl_init_threading(void)
 {
     char *cp;
+#ifdef JL_ELF_TLS_VARIANT
+    jl_check_tls();
+#endif
+
     // how many threads available, usable
     jl_n_threads = JULIA_NUM_THREADS;
     if (jl_options.nthreads < 0) { // --threads=auto
@@ -461,15 +466,6 @@ void jl_init_nthreads(void)
     }
     if (jl_n_threads <= 0)
         jl_n_threads = 1;
-}
-// interface to Julia; sets up to make the runtime thread-safe
-void jl_init_threading(void)
-{
-#ifdef JL_ELF_TLS_VARIANT
-    jl_check_tls();
-#endif
-
-    jl_init_nthreads();
 
 #ifndef __clang_gcanalyzer__
     jl_all_tls_states = (jl_ptls_t*)calloc(jl_n_threads, sizeof(void*));
