@@ -446,6 +446,7 @@ const int jl_tls_elf_support = 0;
 void jl_init_threading(void)
 {
     char *cp;
+
 #ifdef JL_ELF_TLS_VARIANT
     jl_check_tls();
 #endif
@@ -466,7 +467,6 @@ void jl_init_threading(void)
     }
     if (jl_n_threads <= 0)
         jl_n_threads = 1;
-
 #ifndef __clang_gcanalyzer__
     jl_all_tls_states = (jl_ptls_t*)calloc(jl_n_threads, sizeof(void*));
 #endif
